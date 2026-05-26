@@ -1,21 +1,68 @@
 'use client'
 
 import { useState } from 'react'
-import { TransactionForm } from '@/components/transaction-form'
+import { Plus } from 'lucide-react'
 
-export function AddTransactionButton() {
+import { Button } from '@/components/ui/button'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
+import { TransactionForm } from '@/components/transaction-form'
+import { cn } from '@/lib/utils'
+import type { Wallet } from '@/lib/types'
+
+type Props = {
+  variant?: 'default' | 'fab'
+  className?: string
+  wallets?: Wallet[]
+}
+
+export function AddTransactionButton({ variant = 'default', className, wallets = [] }: Props) {
   const [open, setOpen] = useState(false)
+
+  if (variant === 'fab') {
+    return (
+      <>
+        <Tooltip>
+          <TooltipTrigger
+            render={
+              <Button
+                type="button"
+                variant="default"
+                size="icon-lg"
+                aria-label="Добавить транзакцию"
+                onClick={() => setOpen(true)}
+                className={cn(
+                  'fixed bottom-6 right-6 z-40 size-12 rounded-full shadow-lg md:hidden',
+                  className
+                )}
+              />
+            }
+          >
+            <Plus className="size-5" />
+          </TooltipTrigger>
+          <TooltipContent side="left">Добавить транзакцию</TooltipContent>
+        </Tooltip>
+        <TransactionForm open={open} onClose={() => setOpen(false)} wallets={wallets} />
+      </>
+    )
+  }
 
   return (
     <>
-      <button
+      <Button
+        type="button"
+        variant="default"
+        size="default"
         onClick={() => setOpen(true)}
-        className="inline-flex items-center gap-2 rounded-md bg-white/10 hover:bg-white/20 active:bg-white/25 border border-white/20 px-4 py-2 text-sm font-medium text-primary-foreground transition-colors"
+        className={cn('hidden sm:inline-flex', className)}
       >
-        <span className="text-base leading-none">+</span>
+        <Plus data-icon="inline-start" />
         Добавить
-      </button>
-      <TransactionForm open={open} onClose={() => setOpen(false)} />
+      </Button>
+      <TransactionForm open={open} onClose={() => setOpen(false)} wallets={wallets} />
     </>
   )
 }

@@ -485,16 +485,470 @@
             "parentId": "undefined"
           }
         ]
+      },
+      {
+        "id": "11",
+        "title": "Enable Supabase Email auth provider and verify project Auth settings",
+        "description": "Открыть Supabase Dashboard → Authentication → Providers, включить Email-провайдер, проверить Site URL и Redirect URLs (localhost + будущий Vercel-домен). Решить, оставлять ли Confirm email для учебного проекта.",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [
+          "1"
+        ],
+        "details": "В Supabase Studio: Authentication → Providers → Email = enabled. Authentication → URL Configuration → Site URL = http://localhost:3000, Redirect URLs включить http://localhost:3000/** и будущий https://*.vercel.app/**. Для учебного проекта допустимо отключить Confirm email (Authentication → Providers → Email → Confirm email = off), чтобы регистрация работала без захода в почту. Никакого кода — только настройки дашборда.",
+        "testStrategy": "Через REST или curl сделать тестовый supabase.auth.signUp с тестовым email и убедиться, что вернулся user и session (если Confirm email off) или сообщение «check your email» (если on).",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Включить Email-провайдер в Supabase Dashboard",
+            "status": "pending",
+            "dependencies": [],
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "Настроить Site URL и Redirect URLs (localhost + vercel)",
+            "status": "pending",
+            "dependencies": [
+              1
+            ],
+            "parentId": "undefined"
+          },
+          {
+            "id": 3,
+            "title": "Принять решение по Confirm email (on/off для учебного проекта)",
+            "status": "pending",
+            "dependencies": [
+              1
+            ],
+            "parentId": "undefined"
+          }
+        ]
+      },
+      {
+        "id": "12",
+        "title": "Verify @supabase/ssr is installed and browser/server clients are wired",
+        "description": "Убедиться, что используется именно @supabase/ssr (не deprecated @supabase/auth-helpers-nextjs), и что src/lib/supabase/client.ts (createBrowserClient) и src/lib/supabase/server.ts (createServerClient с cookies()) уже на месте из модуля 5/6.",
+        "status": "done",
+        "priority": "high",
+        "dependencies": [
+          "1"
+        ],
+        "details": "Проверить package.json: '@supabase/ssr' присутствует, '@supabase/auth-helpers-nextjs' — отсутствует. Файл src/lib/supabase/client.ts экспортирует createClient() через createBrowserClient(url, anonKey). Файл src/lib/supabase/server.ts экспортирует createClient() через createServerClient с cookieStore = await cookies(), getAll() и setAll() (try/catch для Server Component vs Route Handler). Если файлы устаревшие — обновить до Next.js 16 паттерна (async cookies()).",
+        "testStrategy": "В Server Component вызвать const supabase = await createClient(); const { data: { user } } = await supabase.auth.getUser(); — без runtime-ошибок про cookies(). В Client Component тот же вызов через createBrowserClient.",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Проверить package.json — есть @supabase/ssr, нет @supabase/auth-helpers-nextjs",
+            "status": "pending",
+            "dependencies": [],
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "Проверить src/lib/supabase/client.ts: createBrowserClient",
+            "status": "pending",
+            "dependencies": [],
+            "parentId": "undefined"
+          },
+          {
+            "id": 3,
+            "title": "Проверить src/lib/supabase/server.ts: createServerClient + await cookies()",
+            "status": "pending",
+            "dependencies": [],
+            "parentId": "undefined"
+          }
+        ],
+        "updatedAt": "2026-05-14T17:34:27.259Z"
+      },
+      {
+        "id": "13",
+        "title": "Implement src/middleware.ts with Supabase updateSession pattern",
+        "description": "Создать middleware, который на каждом запросе обновляет cookies сессии Supabase через паттерн updateSession (createServerClient + getUser + response с прокинутыми cookies).",
+        "status": "done",
+        "priority": "high",
+        "dependencies": [
+          "12"
+        ],
+        "details": "Создать src/lib/supabase/middleware.ts с функцией updateSession(request: NextRequest): создать let supabaseResponse = NextResponse.next({ request }), создать supabase через createServerClient с cookies.getAll() из request и cookies.setAll(), обновляющим И request.cookies, И supabaseResponse.cookies. Сразу после createServerClient вызвать await supabase.auth.getUser() — это и есть refresh сессии. Вернуть supabaseResponse. Создать src/middleware.ts: export async function middleware(request) { return await updateSession(request) }. Export config с matcher, исключающим _next/static, _next/image, favicon.ico, *.svg/png/jpg и т.п.",
+        "testStrategy": "Зайти на любой роут, открыть DevTools → Application → Cookies — увидеть sb-*-auth-token. После signIn кука появляется, после signOut — исчезает. Никаких ошибок «cookies() should be awaited» в консоли.",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Создать src/lib/supabase/middleware.ts с функцией updateSession",
+            "status": "pending",
+            "dependencies": [],
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "Создать src/middleware.ts, вызывающий updateSession",
+            "status": "pending",
+            "dependencies": [
+              1
+            ],
+            "parentId": "undefined"
+          },
+          {
+            "id": 3,
+            "title": "Настроить config.matcher (исключить статические файлы и _next/*)",
+            "status": "pending",
+            "dependencies": [
+              2
+            ],
+            "parentId": "undefined"
+          },
+          {
+            "id": 4,
+            "title": "Проверить, что cookies сессии корректно проходят через request/response",
+            "status": "pending",
+            "dependencies": [
+              2
+            ],
+            "parentId": "undefined"
+          }
+        ],
+        "updatedAt": "2026-05-14T17:34:27.262Z"
+      },
+      {
+        "id": "14",
+        "title": "Build /register page with signUp Server Action and zod validation",
+        "description": "Страница регистрации /register с формой email + password + confirmPassword, валидация через zod (пароль ≥ 8, пароли совпадают), Server Action signUp через supabase.auth.signUp, после успеха — сообщение «Проверьте почту» (или редирект на /, если Confirm email off).",
+        "status": "done",
+        "priority": "high",
+        "dependencies": [
+          "11",
+          "13"
+        ],
+        "details": "Создать src/app/(auth)/register/page.tsx (Server Component) — рендерит <RegisterForm/>. Создать src/components/auth/register-form.tsx (Client Component, useFormState/useActionState из react). Создать src/lib/auth-schemas.ts с registerSchema = z.object({ email: z.string().email(), password: z.string().min(8), confirmPassword: z.string() }).refine(d => d.password === d.confirmPassword). Создать src/app/actions/auth.ts с 'use server' и Server Action signUp(prevState, formData): zod.safeParse → supabase.auth.signUp({ email, password, options: { emailRedirectTo: `${origin}/auth/callback` } }) → если data.user без session — вернуть { message: 'Проверьте почту' }, иначе redirect('/'). НИКОГДА не логировать пароль.",
+        "testStrategy": "Открыть /register, ввести валидные email+password+confirm — увидеть либо сообщение «Проверьте почту», либо редирект на /. Ввести пароль из 5 символов — увидеть ошибку валидации под полем. Ввести разные password и confirmPassword — ошибка «Пароли не совпадают».",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Создать src/lib/auth-schemas.ts с registerSchema (zod)",
+            "status": "pending",
+            "dependencies": [],
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "Создать src/app/actions/auth.ts с Server Action signUp",
+            "status": "pending",
+            "dependencies": [
+              1
+            ],
+            "parentId": "undefined"
+          },
+          {
+            "id": 3,
+            "title": "Создать src/components/auth/register-form.tsx с useActionState",
+            "status": "pending",
+            "dependencies": [
+              1
+            ],
+            "parentId": "undefined"
+          },
+          {
+            "id": 4,
+            "title": "Создать страницу src/app/(auth)/register/page.tsx с <RegisterForm/>",
+            "status": "pending",
+            "dependencies": [
+              3
+            ],
+            "parentId": "undefined"
+          },
+          {
+            "id": 5,
+            "title": "Прогнать сценарии валидации и успешной регистрации",
+            "status": "pending",
+            "dependencies": [
+              2,
+              4
+            ],
+            "parentId": "undefined"
+          }
+        ],
+        "updatedAt": "2026-05-14T17:34:27.262Z"
+      },
+      {
+        "id": "15",
+        "title": "Build /login page with signIn Server Action, plus signOut and Logout button",
+        "description": "Страница входа /login с формой email + password, Server Action signIn через signInWithPassword → redirect('/'). Server Action signOut + кнопка «Выйти» в шапке. Понятная ошибка под формой при неуспехе.",
+        "status": "done",
+        "priority": "high",
+        "dependencies": [
+          "11",
+          "13"
+        ],
+        "details": "Создать src/app/(auth)/login/page.tsx с <LoginForm/>. Создать src/components/auth/login-form.tsx (Client Component, useActionState). Добавить loginSchema в src/lib/auth-schemas.ts (email + password). В src/app/actions/auth.ts добавить signIn(prevState, formData): safeParse → supabase.auth.signInWithPassword → если error — вернуть { error: 'Неверный email или пароль' }, иначе revalidatePath('/', 'layout') + redirect('/'). Также signOut(): await supabase.auth.signOut() + revalidatePath('/', 'layout') + redirect('/login'). В src/components/header.tsx (или layout.tsx) показывать кнопку «Выйти» (form action={signOut}), когда user не null.",
+        "testStrategy": "Зарегистрировать пользователя, на /login ввести его email+password — попасть на /. Ввести неверный пароль — увидеть «Неверный email или пароль» под формой. Нажать «Выйти» — попасть на /login, кука sb-*-auth-token удалена.",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Добавить loginSchema в src/lib/auth-schemas.ts",
+            "status": "pending",
+            "dependencies": [],
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "Добавить Server Action signIn в src/app/actions/auth.ts",
+            "status": "pending",
+            "dependencies": [
+              1
+            ],
+            "parentId": "undefined"
+          },
+          {
+            "id": 3,
+            "title": "Добавить Server Action signOut в src/app/actions/auth.ts",
+            "status": "pending",
+            "dependencies": [],
+            "parentId": "undefined"
+          },
+          {
+            "id": 4,
+            "title": "Создать src/components/auth/login-form.tsx с useActionState",
+            "status": "pending",
+            "dependencies": [
+              1
+            ],
+            "parentId": "undefined"
+          },
+          {
+            "id": 5,
+            "title": "Создать страницу src/app/(auth)/login/page.tsx с <LoginForm/>",
+            "status": "pending",
+            "dependencies": [
+              4
+            ],
+            "parentId": "undefined"
+          },
+          {
+            "id": 6,
+            "title": "Добавить кнопку «Выйти» в шапке (показывается, если user != null)",
+            "status": "pending",
+            "dependencies": [
+              3
+            ],
+            "parentId": "undefined"
+          }
+        ],
+        "updatedAt": "2026-05-14T17:34:27.262Z"
+      },
+      {
+        "id": "16",
+        "title": "Add Social Login (Google, GitHub) with OAuth callback route",
+        "description": "Кнопки «Войти через Google» и «Войти через GitHub» на /login и /register через signInWithOAuth. Callback-роут /auth/callback/route.ts обменивает code на сессию через exchangeCodeForSession.",
+        "status": "in-progress",
+        "priority": "medium",
+        "dependencies": [
+          "14",
+          "15"
+        ],
+        "details": "В Supabase Dashboard → Authentication → Providers включить Google и GitHub, прописать Client ID/Secret и Redirect URL (https://<project>.supabase.co/auth/v1/callback). Создать src/components/auth/social-buttons.tsx (Client Component) с двумя кнопками: onClick → supabase.auth.signInWithOAuth({ provider: 'google' | 'github', options: { redirectTo: `${location.origin}/auth/callback?next=/` } }). Создать src/app/auth/callback/route.ts: export async function GET(request) { const { searchParams, origin } = new URL(request.url); const code = searchParams.get('code'); const next = searchParams.get('next') ?? '/'; if (code) { const supabase = await createClient(); await supabase.auth.exchangeCodeForSession(code); } return NextResponse.redirect(`${origin}${next}`) }. Импортировать SocialButtons в login-form.tsx и register-form.tsx.",
+        "testStrategy": "Нажать «Войти через Google» — пройти OAuth flow Google — вернуться на / залогиненным. То же с GitHub. После /auth/callback кука сессии есть, user не null в Server Component.",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Включить Google и GitHub провайдеров в Supabase Dashboard",
+            "status": "pending",
+            "dependencies": [],
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "Создать src/components/auth/social-buttons.tsx с signInWithOAuth",
+            "status": "pending",
+            "dependencies": [
+              1
+            ],
+            "parentId": "undefined"
+          },
+          {
+            "id": 3,
+            "title": "Создать src/app/auth/callback/route.ts с exchangeCodeForSession",
+            "status": "pending",
+            "dependencies": [],
+            "parentId": "undefined"
+          },
+          {
+            "id": 4,
+            "title": "Подключить SocialButtons на страницы /login и /register",
+            "status": "pending",
+            "dependencies": [
+              2
+            ],
+            "parentId": "undefined"
+          },
+          {
+            "id": 5,
+            "title": "Прогнать end-to-end через Google и через GitHub",
+            "status": "pending",
+            "dependencies": [
+              2,
+              3,
+              4
+            ],
+            "parentId": "undefined"
+          }
+        ],
+        "updatedAt": "2026-05-14T17:34:27.262Z"
+      },
+      {
+        "id": "17",
+        "title": "Protect transaction routes via middleware (redirect unauth users to /login)",
+        "description": "Расширить middleware: если user == null и роут не публичный — redirect /login. Если user != null и роут /login или /register — redirect /. Настроить config.matcher.",
+        "status": "done",
+        "priority": "high",
+        "dependencies": [
+          "13",
+          "15"
+        ],
+        "details": "В src/lib/supabase/middleware.ts → updateSession: после const { data: { user } } = await supabase.auth.getUser() — проверить request.nextUrl.pathname. Если !user && !pathname.startsWith('/login') && !pathname.startsWith('/register') && !pathname.startsWith('/auth') — вернуть NextResponse.redirect(new URL('/login', request.url)). Если user && (pathname === '/login' || pathname === '/register') — вернуть NextResponse.redirect(new URL('/', request.url)). Обновить config.matcher в src/middleware.ts: применять ко всему, кроме _next/static, _next/image, favicon.ico, *.svg|png|jpg|jpeg|gif|webp, и /api/auth (если будет). Важно: при редиректе не забыть прокинуть cookies из supabaseResponse в новый NextResponse.redirect.",
+        "testStrategy": "Разлогиненным открыть / → попасть на /login. Залогиненным открыть /login → попасть на /. Открыть /auth/callback?code=... — НЕ должно редиректить, обмен code должен пройти.",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "В updateSession редиректить незалогиненных на /login (кроме публичных роутов)",
+            "status": "pending",
+            "dependencies": [],
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "В updateSession редиректить залогиненных с /login и /register на /",
+            "status": "pending",
+            "dependencies": [
+              1
+            ],
+            "parentId": "undefined"
+          },
+          {
+            "id": 3,
+            "title": "Прокинуть cookies в NextResponse.redirect, чтобы сессия не терялась",
+            "status": "pending",
+            "dependencies": [
+              1
+            ],
+            "parentId": "undefined"
+          },
+          {
+            "id": 4,
+            "title": "Прогнать вручную: гость → /login; пользователь на /login → /",
+            "status": "pending",
+            "dependencies": [
+              2,
+              3
+            ],
+            "parentId": "undefined"
+          }
+        ],
+        "updatedAt": "2026-05-14T17:34:27.262Z"
+      },
+      {
+        "id": "18",
+        "title": "Add user_id to transactions, rewrite RLS policies and Server Actions",
+        "description": "Добавить колонку user_id (uuid → auth.users) в transactions, переписать RLS-политики на auth.uid() = user_id, обновить Server Actions: user_id всегда из getUser(), никогда из формы. На дашборде показывать только свои транзакции.",
+        "status": "in-progress",
+        "priority": "high",
+        "dependencies": [
+          "2",
+          "5",
+          "6",
+          "7",
+          "15"
+        ],
+        "details": "Миграция (supabase/migrations/002_add_user_id_to_transactions.sql): ALTER TABLE transactions ADD COLUMN user_id uuid REFERENCES auth.users(id) ON DELETE CASCADE; либо привязать существующие seed-строки к тестовому пользователю (UPDATE transactions SET user_id = '<uid>') и потом ALTER COLUMN SET NOT NULL, либо TRUNCATE transactions. Удалить старые «открытые всем» политики и создать 4 новые: CREATE POLICY \"own select\" ON transactions FOR SELECT USING (auth.uid() = user_id); INSERT WITH CHECK (auth.uid() = user_id); UPDATE USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id); DELETE USING (auth.uid() = user_id). В src/app/actions.ts: в addTransaction — const { data: { user } } = await supabase.auth.getUser(); if (!user) redirect('/login'); insert({ ...parsed, user_id: user.id }). НИКОГДА не читать user_id из formData. В updateTransaction/deleteTransaction — полагаться на RLS (WHERE id = X пройдёт только для своих строк). В src/app/page.tsx — получить user через getUser(), если null — redirect('/login'); SELECT без явного фильтра по user_id (RLS отфильтрует сама). В src/app/api/transactions/route.ts — также await supabase.auth.getUser(), если null → return new Response('Unauthorized', { status: 401 }).",
+        "testStrategy": "Создать двух пользователей A и B. A создаёт 2 транзакции, B — 1. На дашборде A видит 2, B видит 1. Прямой supabase запрос от A на UPDATE строки B → 0 rows affected. Удалить A в auth.users → его транзакции тоже удаляются (ON DELETE CASCADE). GET /api/transactions без сессии → 401.",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Написать миграцию supabase/migrations/002_add_user_id_to_transactions.sql",
+            "status": "pending",
+            "dependencies": [],
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "Бэкфилл/очистка существующих seed-строк под NOT NULL user_id",
+            "status": "pending",
+            "dependencies": [
+              1
+            ],
+            "parentId": "undefined"
+          },
+          {
+            "id": 3,
+            "title": "Удалить старые RLS-политики и создать новые на auth.uid() = user_id",
+            "status": "pending",
+            "dependencies": [
+              2
+            ],
+            "parentId": "undefined"
+          },
+          {
+            "id": 4,
+            "title": "Обновить addTransaction: user_id из getUser(), не из формы",
+            "status": "pending",
+            "dependencies": [
+              3
+            ],
+            "parentId": "undefined"
+          },
+          {
+            "id": 5,
+            "title": "Обновить updateTransaction/deleteTransaction (полагаться на RLS)",
+            "status": "pending",
+            "dependencies": [
+              3
+            ],
+            "parentId": "undefined"
+          },
+          {
+            "id": 6,
+            "title": "Обновить src/app/page.tsx: getUser() + redirect('/login') если null",
+            "status": "pending",
+            "dependencies": [
+              3
+            ],
+            "parentId": "undefined"
+          },
+          {
+            "id": 7,
+            "title": "Обновить GET /api/transactions: 401 если нет сессии",
+            "status": "pending",
+            "dependencies": [
+              3
+            ],
+            "parentId": "undefined"
+          },
+          {
+            "id": 8,
+            "title": "End-to-end проверка изоляции данных между двумя пользователями",
+            "status": "pending",
+            "dependencies": [
+              4,
+              5,
+              6,
+              7
+            ],
+            "parentId": "undefined"
+          }
+        ],
+        "updatedAt": "2026-05-14T17:34:27.262Z"
       }
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2026-05-12T17:25:49.439Z",
-      "taskCount": 10,
-      "completedCount": 7,
+      "lastModified": "2026-05-14T17:34:27.262Z",
+      "taskCount": 18,
+      "completedCount": 12,
       "tags": [
         "master"
-      ]
+      ],
+      "updated": "2026-05-14T17:34:27.262Z",
+      "description": "Tasks for master context"
     }
   }
 }

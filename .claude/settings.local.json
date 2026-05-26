@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(gh auth *)",
+      "PowerShell(gh auth *)",
+      "Bash(Copy-Item \".taskmaster\\\\docs\\\\PRD-2.md\" \".taskmaster\\\\docs\\\\prd.txt\" -Force)",
+      "Bash(npx task-master *)"
+    ]
+  }
+}
