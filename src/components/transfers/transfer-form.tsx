@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { createTransfer } from '@/app/transfers/actions'
-import { buildRatesMap, convertAmount, getCurrencySymbol } from '@/lib/currency'
+import { buildRatesMap, getCurrencySymbol } from '@/lib/currency'
 import type { ActionState, ExchangeRate, Wallet } from '@/lib/types'
 
 type Props = {

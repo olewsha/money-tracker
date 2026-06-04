@@ -3,6 +3,7 @@
 import { redirect } from 'next/navigation'
 
 import { getCurrentProfile } from '@/lib/auth-helpers'
+import { RateLimitPresets } from '@/lib/rate-limit'
 import { createClient } from '@/lib/supabase/server'
 import { getPriceId, getStripe, isStripeConfigured, type BillingInterval } from '@/lib/stripe'
 
@@ -16,12 +17,14 @@ async function getOrigin(): Promise<string> {
   return `${proto}://${host}`
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export async function startMonthlyCheckout(
   _prev: BillingActionState
 ): Promise<BillingActionState> {
   return createCheckoutSession('monthly')
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export async function startYearlyCheckout(
   _prev: BillingActionState
 ): Promise<BillingActionState> {
@@ -31,6 +34,12 @@ export async function startYearlyCheckout(
 export async function createCheckoutSession(
   interval: BillingInterval
 ): Promise<BillingActionState> {
+  try {
+    await RateLimitPresets.startCheckout()
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : 'Слишком много запросов' }
+  }
+
   if (!isStripeConfigured()) {
     return { error: 'Stripe не настроен. Добавьте ключи в переменные окружения.' }
   }
@@ -83,6 +92,12 @@ export async function createCheckoutSession(
 }
 
 export async function createBillingPortalSession(): Promise<BillingActionState> {
+  try {
+    await RateLimitPresets.billingPortal()
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : 'Слишком много запросов' }
+  }
+
   if (!isStripeConfigured()) {
     return { error: 'Stripe не настроен.' }
   }
