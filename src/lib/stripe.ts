@@ -19,7 +19,7 @@ export function getStripe(): Stripe | null {
   const key = process.env.STRIPE_SECRET_KEY?.trim()
   if (!key || !isValidStripeServerKey(key)) return null
   if (!_stripe) {
-    _stripe = new Stripe(key, { apiVersion: '2026-04-22.dahlia' })
+    _stripe = new Stripe(key, { apiVersion: '2026-05-27.dahlia' })
   }
   return _stripe
 }
