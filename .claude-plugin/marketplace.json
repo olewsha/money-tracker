@@ -1,0 +1,19 @@
+{
+  "name": "olewsha-plugins",
+  "owner": {
+    "name": "OksanaLewsha",
+    "email": "oksana.lewsha@gmail.com"
+  },
+  "description": "Инструменты разработки для Money Tracker — code review, debugging, проверка безопасности",
+  "plugins": [
+    {
+      "name": "money-tracker",
+      "source": "./.claude/skills/money-tracker",
+      "description": "Code review, debugging и проверка безопасности для проекта Money Tracker (Next.js + Supabase + Stripe)",
+      "author": {
+        "name": "OksanaLewsha"
+      },
+      "license": "MIT"
+    }
+  ]
+}
