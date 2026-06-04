@@ -1,0 +1,9 @@
+{
+  "name": "money-tracker",
+  "description": "Инструменты разработки для Money Tracker — code review, debugging, проверка безопасности",
+  "version": "1.0.0",
+  "author": {
+    "name": "OksanaLewsha"
+  },
+  "license": "MIT"
+}
