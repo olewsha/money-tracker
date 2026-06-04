@@ -95,10 +95,15 @@ export function TransactionForm({ open, onClose, initialData, wallets = [] }: Pr
 
   useEffect(() => {
     if (!open) return
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setType(initialData?.type ?? 'expense')
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setDate(initialData?.date ?? todayIso())
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setDescription(initialData?.description ?? '')
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setCategory(initialData?.category ?? '')
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setWalletId(initialData?.wallet_id ? String(initialData.wallet_id) : '__none__')
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, initialData])

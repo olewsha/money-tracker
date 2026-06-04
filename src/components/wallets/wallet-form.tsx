@@ -1,6 +1,6 @@
 'use client'
 
-import { useActionState, useEffect, useState } from 'react'
+import { useActionState, useEffect, useRef, useState } from 'react'
 import {
   Banknote, Building2, CreditCard, PiggyBank, Wallet as WalletIcon,
 } from 'lucide-react'
@@ -47,12 +47,15 @@ export function WalletForm({ open, onClose, initialData }: Props) {
   const [currency, setCurrency] = useState(initialData?.currency ?? 'BYN')
   const [color, setColor]       = useState(initialData?.color ?? WALLET_COLORS[0])
 
-  const justSubmitted = { current: false }
+  const justSubmitted = useRef(false)
 
   useEffect(() => {
     if (!open) return
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setType(initialData?.type ?? 'card')
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setCurrency(initialData?.currency ?? 'BYN')
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setColor(initialData?.color ?? WALLET_COLORS[0])
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, initialData])

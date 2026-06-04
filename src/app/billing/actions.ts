@@ -17,15 +17,15 @@ async function getOrigin(): Promise<string> {
   return `${proto}://${host}`
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export async function startMonthlyCheckout(
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   _prev: BillingActionState
 ): Promise<BillingActionState> {
   return createCheckoutSession('monthly')
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export async function startYearlyCheckout(
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   _prev: BillingActionState
 ): Promise<BillingActionState> {
   return createCheckoutSession('yearly')

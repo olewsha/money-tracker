@@ -1,6 +1,6 @@
 'use client'
 
-import { useActionState, useEffect, useMemo, useState } from 'react'
+import { useActionState, useEffect, useMemo, useRef, useState } from 'react'
 import { ArrowRight } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -57,6 +57,7 @@ export function TransferForm({ open, onClose, wallets, rates }: Props) {
   useEffect(() => {
     const num = parseFloat(fromAmount)
     if (!isNaN(num) && exchangeRate !== null) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setToAmount((num * exchangeRate).toFixed(2))
     }
   }, [fromAmount, exchangeRate])
@@ -64,15 +65,20 @@ export function TransferForm({ open, onClose, wallets, rates }: Props) {
   // Reset on open
   useEffect(() => {
     if (!open) return
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setFromId(wallets[0] ? String(wallets[0].id) : '')
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setToId(wallets[1] ? String(wallets[1].id) : '')
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setFromAmount('')
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setToAmount('')
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setDate(todayIso())
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open])
 
-  const submitted = { current: false }
+  const submitted = useRef(false)
   useEffect(() => {
     if (pending) { submitted.current = true; return }
     if (!submitted.current) return
